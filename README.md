@@ -17,6 +17,13 @@ recommended reading.
 
 ## Folders
 
-**FIXME** Folder list goes here.
+* 'datasets-cooked' --
+Field Trip data intended to be used by the demo script.
+* 'datasets-raw' --
+Datasets from which the "cooked" datasets were derived.
+* 'development' --
+Scripts that are not intended to be part of the demo.
+
+**FIXME** -- Demo script folder to-do.
 
 _(This is the end of the file.)_

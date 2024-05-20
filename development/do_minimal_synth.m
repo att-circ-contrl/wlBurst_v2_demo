@@ -1,0 +1,1 @@
+../../wlburst2/sample-minimal/do_minimal_synth.m
