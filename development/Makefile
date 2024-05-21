@@ -35,6 +35,11 @@ robinson: checkdirs
 		-r "dbstop if error; run('do_process_robinson.m'); exit;"
 	mv output/ftdata_robinson.mat ../datasets-cooked
 
+york: checkdirs
+	nice -n +10 $(MATLAB) $(MATFLAGS) \
+		-r "dbstop if error; run('do_process_york.m'); exit;"
+	mv output/ftdata_york.mat ../datasets-cooked
+
 gallery: gallery4
 
 gallery6:
