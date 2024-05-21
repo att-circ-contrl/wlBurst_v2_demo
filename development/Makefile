@@ -28,7 +28,12 @@ gensynth: checkdirs
 synth: checkdirs
 	nice -n +10 $(MATLAB) $(MATFLAGS) \
 		-r "dbstop if error; run('do_process_synth.m'); exit;"
-	mv output/ftdata-wlburst.mat ../datasets-cooked
+	mv output/ftdata_wlburst.mat ../datasets-cooked
+
+robinson: checkdirs
+	nice -n +10 $(MATLAB) $(MATFLAGS) \
+		-r "dbstop if error; run('do_process_robinson.m'); exit;"
+	mv output/ftdata_robinson.mat ../datasets-cooked
 
 gallery: gallery4
 

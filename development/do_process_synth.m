@@ -8,7 +8,7 @@ load([ '..' filesep 'datasets-raw' filesep 'minimal-synthevents.mat' ]);
 
 ftdata_wlburst = synthdata;
 
-save( [ 'output' filesep 'ftdata-wlburst.mat' ], '-v7.3', 'ftdata_wlburst' );
+save( [ 'output' filesep 'ftdata_wlburst.mat' ], '-v7.3', 'ftdata_wlburst' );
 
 
 %
