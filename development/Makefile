@@ -25,6 +25,11 @@ gensynth: checkdirs
 		-r "dbstop if error; addpath('lib-wlburst-v2'); wlAddPaths; run('do_minimal_synth.m'); exit;"
 	mv output/*png plots/
 
+synth: checkdirs
+	nice -n +10 $(MATLAB) $(MATFLAGS) \
+		-r "dbstop if error; run('do_process_synth.m'); exit;"
+	mv output/ftdata-wlburst.mat ../datasets-cooked
+
 gallery: gallery4
 
 gallery6:
