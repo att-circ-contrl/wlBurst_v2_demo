@@ -18,6 +18,11 @@ want_one_bg_surrogate = false;
 
 want_tuned_thresholds = false;
 
+want_parallel = true;
+
+% This enables the wlBurst library's tattling.
+want_tattle_progress = false;
+
 
 %
 % General parameters.
@@ -63,6 +68,9 @@ detsweepthresholds = 4:16;
 
 % Selected thresholds per-band.
 tunedthresholds = struct( 'th', 8, 'al', 12, 'be', 12, 'gl', 8, 'gh', 9 );
+
+% Event trimming at the ends of the detection range.
+detecttrimsecs = 0.5;
 
 
 %

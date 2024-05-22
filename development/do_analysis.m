@@ -38,9 +38,18 @@ ft_info('off');
 ft_warning('off');
 
 
+% Start the parallel pool early (it takes about 30 seconds).
+
+if want_parallel
+  parpool;
+end
+
+
 
 %
 % Iterate datasets, bands, and thresholds.
+
+bandoverridenone = struct( 'seg', struct(), 'param', struct() );
 
 for sidx = 1:length(datasetlist)
 
@@ -81,7 +90,6 @@ for sidx = 1:length(datasetlist)
     disp(sprintf( '-- Processing %s band (%.1f - %.1f Hz).', ...
       bandtitle, min(bandspan), max(bandspan) ));
 
-
     basedetectconfig = segconfig;
     if want_tuned_thresholds && isfield( tunedthresholds, bandlabel )
       basedetectconfig.dbpeak = tunedthresholds.(bandlabel);
@@ -102,7 +110,31 @@ for sidx = 1:length(datasetlist)
 
       disp(sprintf( '.. Testing with %.1f dB threshold.', thisthresh ));
 
+
+      % Detect events in the baseline data.
+      % Trim events near the ends to avoid roll-off artifacts.
+
+      tic;
+
+      if want_parallel
+        thisdetect = wlFT_doFindEventsInTrials_MT( ...
+          ftdata, thisbanddef, thisdetectconfig, paramconfig, ...
+          bandoverridenone, want_tattle_progress );
+      else
+        thisdetect = wlFT_doFindEventsInTrials( ...
+          ftdata, thisbanddef, thisdetectconfig, paramconfig, ...
+          bandoverridenone, want_tattle_progress );
+      end
+
+      thisdetect = wlFT_pruneEventsByTime( ...
+        thisdetect, detecttrimsecs, detecttrimsecs );
+
+      durstring = nlUtil_makePrettyTime(toc);
+      disp([ '.. Detection took ' durstring '.' ]);
+
 % FIXME - NYI.
+% FIXME - Pruning based on reconstruction error goes here.
+% FIXME - Save relevant parts of the detection and discard the rest.
 
       % End of threshold iteration.
     end
