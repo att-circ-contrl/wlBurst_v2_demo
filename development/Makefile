@@ -6,7 +6,7 @@ MATFLAGS=-nodisplay -nodesktop -nosplash
 MATGUIFLAGS=-nodesktop -nosplash
 
 default:
-	@echo "Targets:   clean  gensynth  synth  robinson  york  gallery"
+	@echo "Targets:   clean  gensynth  synth  robinson  york  detect  gallery"
 
 
 clean:
@@ -39,6 +39,10 @@ york: checkdirs
 	nice -n +10 $(MATLAB) $(MATFLAGS) \
 		-r "dbstop if error; run('do_process_york.m'); exit;"
 	mv output/ftdata_york.mat ../datasets-cooked
+
+detect: checkdirs
+	nice -n +10 $(MATLAB) $(MATFLAGS) \
+		-r "dbstop if error; run('do_analysis.m'); exit;"
 
 gallery: gallery4
 
