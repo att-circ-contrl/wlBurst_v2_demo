@@ -189,10 +189,6 @@ for sidx = 1:length(datasetlist)
       end
 
 
-% FIXME - Save relevant parts of the detection and discard the rest.
-
-
-
       % Visualize the detected events using FT's functions, if desired.
       % FIXME - The 2023 version of FT emits a help screen to console with
       % no way to turn it off. Use "evalc" to get rid of it.
@@ -200,12 +196,20 @@ for sidx = 1:length(datasetlist)
       if want_browse_bursts
         disp('.. Visualizing detected events.');
 
-        thisyrange = helper_getTrialYrange( ftevents, { 'wave' } );
+        burstchans = { 'wave', 'origbpf' };
+        if want_browse_burst_wb
+          burstchans = [ burstchans {'origwb'} ];
+        end
 
-% FIXME - Field Trip does not like my fake trials.
+        % FIXME - Databrowser isn't auto-ranging for some reason.
+        thisyrange = helper_getTrialYrange( ftevents, burstchans );
 
-        browserconfig = struct( 'ylim', thisyrange, ...
-          'allowoverlap', 'yes', 'channel', {{ 'wave' }} );
+% This would be great if we actually had a legend in ft_databrowser.
+%          'viewmode', 'butterfly', ...
+
+        browserconfig = struct( 'ylim', thisyrange );
+        browserconfig.channel = burstchans;
+
         evalc( 'ft_databrowser( browserconfig, ftevents )' );
 
         disp('.. (press any key)');
@@ -215,7 +219,8 @@ for sidx = 1:length(datasetlist)
       if want_browse_in_trials
         disp('.. Visualizing trials annotated with events.');
 
-        if want_browse_bandpass
+        % FIXME - Databrowser isn't auto-ranging for some reason.
+        if want_browse_trial_bandpass
           thisyrange = helper_getTrialYrange( ftbandpass, {} );
         else
           thisyrange = helper_getTrialYrange( ftdata, {} );
@@ -226,7 +231,7 @@ for sidx = 1:length(datasetlist)
         % Add Field Trip's nested artifact annotation structure.
         browserconfig.artfctdef = struct( 'wlburst', artstruct );
 
-        if want_browse_bandpass
+        if want_browse_trial_bandpass
           browserconfig.preproc = bandpassconfig;
         end
 
@@ -236,7 +241,7 @@ for sidx = 1:length(datasetlist)
         pause;
       end
 
-% FIXME - NYI.
+% FIXME - Stopped here.
 
       % End of threshold iteration.
     end

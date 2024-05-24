@@ -24,9 +24,12 @@ want_parallel = true;
 want_tattle_progress = false;
 
 % Indicate how, and if, to use ft_databrowser.
-want_browse_bursts = false;
-want_browse_in_trials = true;
-want_browse_bandpass = false;
+% Detected bursts as individual events with BPF and optional WB context.
+want_browse_bursts = true;
+want_browse_burst_wb = true;
+% Original trials (WB or BPF) with bursts annotated as artifacts.
+want_browse_in_trials = false;
+want_browse_trial_bandpass = false;
 
 
 % Debugging switches.
