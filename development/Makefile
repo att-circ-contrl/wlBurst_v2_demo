@@ -3,10 +3,11 @@
 
 MATLAB=matlab
 MATFLAGS=-nodisplay -nodesktop -nosplash
-MATGUIFLAGS=-nodesktop -nosplash
+# NOTE - I needed to use "-noopengl" for ft_databrowser to work.
+MATGUIFLAGS=-nodesktop -nosplash -noopengl
 
 default:
-	@echo "Targets:   clean  gensynth  synth  robinson  york  detect  gallery"
+	@echo "Targets:   clean  gensynth  synth  robinson  york  detect  detectgui  gallery"
 
 
 clean:
@@ -42,6 +43,10 @@ york: checkdirs
 
 detect: checkdirs
 	nice -n +10 $(MATLAB) $(MATFLAGS) \
+		-r "dbstop if error; run('do_analysis.m'); exit;"
+
+detectgui: checkdirs
+	nice -n +10 $(MATLAB) $(MATGUIFLAGS) \
 		-r "dbstop if error; run('do_analysis.m'); exit;"
 
 gallery: gallery4

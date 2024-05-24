@@ -23,6 +23,15 @@ want_parallel = true;
 % This enables the wlBurst library's tattling.
 want_tattle_progress = false;
 
+% Indicate how, and if, to use ft_databrowser.
+want_browse_bursts = false;
+want_browse_in_trials = true;
+want_browse_bandpass = false;
+
+
+% Debugging switches.
+debug_save_detected = true;
+
 
 %
 % General parameters.

@@ -47,6 +47,20 @@ end
 
 
 %
+% Function handles for event pruning.
+
+% Reject template fits that have relative RMS error of 0.7 or more.
+
+fiterrfunc = @(thisev, thiswave) ...
+  wlProc_calcWaveErrorRelative( thiswave.bpfwave, thisev.sampstart, ...
+    thisev.wave, thisev.s1 );
+
+% NOTE - Make sure to save calculated error in 'fiterror'.
+prunepassfunc = @(thisev) (0.7 >= thisev.auxdata.fiterror);
+
+
+
+%
 % Iterate datasets, bands, and thresholds.
 
 bandoverridenone = struct( 'seg', struct(), 'param', struct() );
@@ -86,7 +100,6 @@ for sidx = 1:length(datasetlist)
       continue;
     end
 
-
     disp(sprintf( '-- Processing %s band (%.1f - %.1f Hz).', ...
       bandtitle, min(bandspan), max(bandspan) ));
 
@@ -100,12 +113,22 @@ for sidx = 1:length(datasetlist)
       thisthreshlist = detsweepthresholds;
     end
 
-    for tidx = 1:length(thisthreshlist)
+    % Get band-pass data, for plotting.
+    bandpassconfig = struct( 'bpfilter', 'yes', 'bpfreq', sort(bandspan), ...
+      'bpinstabilityfix', 'split', 'feedback', 'no' );
+    ftbandpass = ft_preprocessing( bandpassconfig, ftdata );
 
-      thisthresh = thisthreshlist(tidx);
+    for threshidx = 1:length(thisthreshlist)
+
+      thisthresh = thisthreshlist(threshidx);
+      % FIXME - Assume integer dB values!
+      threshlabel = sprintf( '%02ddb', round(thisthresh) );
 
       thisdetectconfig = basedetectconfig;
       thisdetectconfig.dbpeak = thisthresh;
+
+
+      filebase = [ 'output' filesep setlabel '-' bandlabel '-' threshlabel ];
 
 
       disp(sprintf( '.. Testing with %.1f dB threshold.', thisthresh ));
@@ -132,9 +155,88 @@ for sidx = 1:length(datasetlist)
       durstring = nlUtil_makePrettyTime(toc);
       disp([ '.. Detection took ' durstring '.' ]);
 
-% FIXME - NYI.
-% FIXME - Pruning based on reconstruction error goes here.
+
+      % Drop events where the curve fit failed.
+
+      thisdetect = wlFT_calcEventErrors( thisdetect, fiterrfunc, 'fiterror' );
+      thisdetect = wlAux_pruneMatrix( thisdetect, prunepassfunc );
+
+
+      % Pick this apart into visualizable form even if we aren't going to
+      % visualize it. It makes some of the diagnostics easier.
+
+      ftevents = wlFT_getEventTrialsFromMatrix( thisdetect );
+      artstruct = wlFT_getEventsAsArtifacts( thisdetect, ftdata.label );
+
+      % Diagnostics.
+      disp(sprintf( '.. Detected %d events.', size(artstruct.artifact,1) ));
+
+
+      % Diagnostics.
+      if debug_save_detected
+        disp([ '.. Saving "' filebase '".' ]);
+
+        events_matrix = thisdetect.events;
+        save( [ filebase '-events_matrix.mat' ], 'events_matrix', '-v7.3' );
+
+        events_ft = ftevents;
+        save( [ filebase '-events_ft.mat' ], 'events_ft', '-v7.3' );
+
+        events_art = artstruct;
+        save( [ filebase '-events_art.mat' ], 'events_art', '-v7.3' );
+
+        disp('.. Finished saving.');
+      end
+
+
 % FIXME - Save relevant parts of the detection and discard the rest.
+
+
+
+      % Visualize the detected events using FT's functions, if desired.
+      % FIXME - The 2023 version of FT emits a help screen to console with
+      % no way to turn it off. Use "evalc" to get rid of it.
+
+      if want_browse_bursts
+        disp('.. Visualizing detected events.');
+
+        thisyrange = helper_getTrialYrange( ftevents, { 'wave' } );
+
+% FIXME - Field Trip does not like my fake trials.
+
+        browserconfig = struct( 'ylim', thisyrange, ...
+          'allowoverlap', 'yes', 'channel', {{ 'wave' }} );
+        evalc( 'ft_databrowser( browserconfig, ftevents )' );
+
+        disp('.. (press any key)');
+        pause;
+      end
+
+      if want_browse_in_trials
+        disp('.. Visualizing trials annotated with events.');
+
+        if want_browse_bandpass
+          thisyrange = helper_getTrialYrange( ftbandpass, {} );
+        else
+          thisyrange = helper_getTrialYrange( ftdata, {} );
+        end
+
+        browserconfig = struct( 'ylim', thisyrange );
+
+        % Add Field Trip's nested artifact annotation structure.
+        browserconfig.artfctdef = struct( 'wlburst', artstruct );
+
+        if want_browse_bandpass
+          browserconfig.preproc = bandpassconfig;
+        end
+
+        evalc( 'ft_databrowser( browserconfig, ftdata )' );
+
+        disp('.. (press any key)');
+        pause;
+      end
+
+% FIXME - NYI.
 
       % End of threshold iteration.
     end
