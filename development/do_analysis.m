@@ -63,6 +63,9 @@ prunepassfunc = @(thisev) (0.7 >= thisev.auxdata.fiterror);
 %
 % Iterate datasets, bands, and thresholds.
 
+% FIXME - The library is set up to use multiple bands and split up the
+% results after detection. We're ignoring that here.
+
 bandoverridenone = struct( 'seg', struct(), 'param', struct() );
 
 for sidx = 1:length(datasetlist)
@@ -241,7 +244,39 @@ for sidx = 1:length(datasetlist)
         pause;
       end
 
-% FIXME - Stopped here.
+
+      if want_plot_trial_events
+        disp( '.. Plotting events in trials.');
+        tic;
+
+        wlPlot_plotAllMatrixEvents( plotconfig, thisdetect, ...
+          sprintf( '%s Events - %s - %.1f db', ...
+            settitle, bandtitle, thisthresh ), ...
+          [ 'events-' setlabel '-' bandlabel '-' threshlabel ], ...
+          plot_max_per_band, plot_trial_stride, plot_channel_stride );
+
+        durstring = nlUtil_makePrettyTime(toc);
+        disp([ '.. Plotting took ' durstring '.' ]);
+%        disp('.. Finished plotting.');
+      end
+
+
+      if want_plot_event_thresholds
+        disp( '.. Plotting individual events.');
+        tic;
+
+        wlPlot_plotAllMatrixEventsDebug( plotconfig, thisdetect, ...
+          sprintf( '%s Events - %s - %.1f db', ...
+            settitle, bandtitle, thisthresh ), ...
+          [ 'events-' setlabel '-' bandlabel '-' threshlabel ], ...
+          plot_max_per_band, plot_trial_stride, plot_channel_stride, ...
+          plot_event_stride );
+
+        durstring = nlUtil_makePrettyTime(toc);
+        disp([ '.. Plotting took ' durstring '.' ]);
+%        disp('.. Finished plotting.');
+      end
+
 
       % End of threshold iteration.
     end
