@@ -92,6 +92,12 @@ for sidx = 1:length(datasetlist)
 %  disp([ '.. Loaded in ' durstring '.' ]);
 
 
+  % Get time bins.
+
+  time_bins_sec = wlFT_getTimeBinList( ftdata, rate_time_bin_ms, 'edge' );
+  time_bins_single = { rate_band_time_bin_sec };
+
+
   for bidx = 1:length(bandlist)
 
     thisbanddef = bandlist(bidx);
@@ -190,6 +196,24 @@ for sidx = 1:length(datasetlist)
 
         disp('.. Finished saving.');
       end
+
+
+      % Get rates and rate statistics.
+
+      disp('.. Evaluating burst rates.');
+      tic;
+
+      [ rateband_avg rateband_dev rateband_sem ] = ...
+        wlStats_getMatrixBurstRates( thisdetect, time_bins_single, ...
+          bootstrap_count );
+
+      [ rateband_avg rateband_dev rateband_sem ] = ...
+        wlStats_getMatrixBurstRates( thisdetect, time_bins_sec, ...
+          bootstrap_count );
+% FIXME - NYI.
+
+      durstring = nlUtil_makePrettyTime(toc);
+      disp([ '.. Finished in ' durstring '.' ]);
 
 
       % Visualize the detected events using FT's functions, if desired.

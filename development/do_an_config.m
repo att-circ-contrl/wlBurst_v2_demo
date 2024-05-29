@@ -8,7 +8,7 @@
 
 want_sweep_thresh = false;
 want_sweep_bands = false;
-want_sweep_datasets = true;
+want_sweep_datasets = false;
 
 want_bootstrap = false;
 want_surrogates = false;
@@ -21,7 +21,7 @@ want_one_bg_surrogate = false;
 want_tuned_thresholds = false;
 
 
-want_parallel = true;
+want_parallel = false;
 
 % This enables the wlBurst library's tattling.
 want_tattle_progress = false;
@@ -34,6 +34,13 @@ want_plot_event_thresholds = false;
 
 want_plot_trials_all = false;
 want_plot_events_all = false;
+
+
+% Set up analysis plots.
+
+want_plot_ratevstime = true;
+want_plot_ratevsband = true;
+want_plot_vsband_alltime = false;
 
 
 % Indicate how, and if, to use ft_databrowser.
@@ -108,10 +115,21 @@ detecttrimsecs = 0.5;
 
 
 %
-% Statistics evaluation.
+% Burst rate analysis parameters.
+
+rate_time_bin_ms = 100;
+
+rate_band_time_bin_sec = [ 0.0 1.0 ];
+if want_plot_vsband_alltime
+  rate_band_time_bin_sec = [ -inf inf ];
+end
 
 bootstrap_count = 1000;
-surrogate_count = 1000;
+%bootstrap_count = 'normal';
+
+%surrogate_count = 1000;
+%surrogate_count = 100;
+surrogate_count = 10;
 
 
 
