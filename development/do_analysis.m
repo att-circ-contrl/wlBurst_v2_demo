@@ -207,10 +207,62 @@ for sidx = 1:length(datasetlist)
         wlStats_getMatrixBurstRates( thisdetect, time_bins_single, ...
           bootstrap_count );
 
-      [ rateband_avg rateband_dev rateband_sem ] = ...
+      [ ratetime_avg ratetime_dev ratetime_sem ] = ...
         wlStats_getMatrixBurstRates( thisdetect, time_bins_sec, ...
           bootstrap_count );
-% FIXME - NYI.
+
+      durstring = nlUtil_makePrettyTime(toc);
+      disp([ '.. Finished in ' durstring '.' ]);
+
+
+      disp('.. Evaluating background rates.');
+
+
+      [ ftphase trialmap ] = ...
+        wlStats_makePhaseSurrogateFT( ftdata, surrogate_count );
+
+      % FIXME - Duplicate code!
+
+      % Detect events in the baseline data.
+      % Trim events near the ends to avoid roll-off artifacts.
+
+      disp('.. Detecting events in phase-shuffled surrogate data.');
+      disp(sprintf( '.. Using %d surrogates.', surrogate_count ));
+      tic;
+
+      if want_parallel
+        phasedetect = wlFT_doFindEventsInTrials_MT( ...
+          ftphase, thisbanddef, thisdetectconfig, paramconfig, ...
+          bandoverridenone, want_tattle_progress );
+      else
+        phasedetect = wlFT_doFindEventsInTrials( ...
+          ftphase, thisbanddef, thisdetectconfig, paramconfig, ...
+          bandoverridenone, want_tattle_progress );
+      end
+
+      phasedetect = wlFT_pruneEventsByTime( ...
+        phasedetect, detecttrimsecs, detecttrimsecs );
+
+      durstring = nlUtil_makePrettyTime(toc);
+      disp([ '.. Detection took ' durstring '.' ]);
+
+      % Drop events where the curve fit failed.
+
+      phasedetect = ...
+        wlFT_calcEventErrors( phasedetect, fiterrfunc, 'fiterror' );
+      phasedetect = wlAux_pruneMatrix( phasedetect, prunepassfunc );
+
+
+      disp('.. Computing event rates in surrogate data.')
+      tic;
+
+      [ bgband_avg bgband_dev bgband_sem ] = ...
+        wlStats_getMatrixBurstRates( phasedetect, time_bins_single, ...
+          bootstrap_count );
+
+      [ bgtime_avg bgtime_dev bgtime_sem ] = ...
+        wlStats_getMatrixBurstRates( phasedetect, time_bins_sec, ...
+          bootstrap_count );
 
       durstring = nlUtil_makePrettyTime(toc);
       disp([ '.. Finished in ' durstring '.' ]);
@@ -270,11 +322,11 @@ for sidx = 1:length(datasetlist)
 
 
       if want_plot_trial_events
-        disp( '.. Plotting events in trials.');
+        disp('.. Plotting events in trials.');
         tic;
 
         wlPlot_plotAllMatrixEvents( plotconfig, thisdetect, ...
-          sprintf( '%s Events - %s - %.1f db', ...
+          sprintf( '%s Events - %s - %.1f dB', ...
             settitle, bandtitle, thisthresh ), ...
           [ 'events-' setlabel '-' bandlabel '-' threshlabel ], ...
           plot_max_per_band, plot_trial_stride, plot_channel_stride );
@@ -286,11 +338,11 @@ for sidx = 1:length(datasetlist)
 
 
       if want_plot_event_thresholds
-        disp( '.. Plotting individual events.');
+        disp('.. Plotting individual events.');
         tic;
 
         wlPlot_plotAllMatrixEventsDebug( plotconfig, thisdetect, ...
-          sprintf( '%s Events - %s - %.1f db', ...
+          sprintf( '%s Events - %s - %.1f dB', ...
             settitle, bandtitle, thisthresh ), ...
           [ 'events-' setlabel '-' bandlabel '-' threshlabel ], ...
           plot_max_per_band, plot_trial_stride, plot_channel_stride, ...
@@ -299,6 +351,33 @@ for sidx = 1:length(datasetlist)
         durstring = nlUtil_makePrettyTime(toc);
         disp([ '.. Plotting took ' durstring '.' ]);
 %        disp('.. Finished plotting.');
+      end
+
+
+      if want_plot_rates
+        disp('.. Plotting burst rates.');
+
+% FIXME - This needs to be aggregated outside the band loop!
+% FIXME - Blithely assuming FT channel labels are plot/filename safe.
+if true
+        wlPlot_plotMatrixBurstRates( plotconfig, ...
+          rateband_avg, rateband_dev, rateband_sem, ...
+          bgband_avg, bgband_dev, bgband_sem, ...
+          time_bins_single, { bandtitle }, { bandlabel }, ftdata.label, ...
+          sprintf( '%s Burst Rates - %s - %.1f dB', ...
+            settitle, bandtitle, thisthresh ), ...
+          [ 'byband-' setlabel '-' threshlabel ] );
+end
+
+        wlPlot_plotMatrixBurstRates( plotconfig, ...
+          ratetime_avg, ratetime_dev, ratetime_sem, ...
+          bgtime_avg, bgtime_dev, bgtime_sem, ...
+          time_bins_sec, { bandtitle }, { bandlabel }, ftdata.label, ...
+          sprintf( '%s Burst Rates - %s - %.1f dB', ...
+            settitle, bandtitle, thisthresh ), ...
+          [ 'bytime-' setlabel '-' threshlabel ] );
+
+        disp('.. Finished plotting.');
       end
 
 
