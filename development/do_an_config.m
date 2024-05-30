@@ -10,6 +10,7 @@ want_sweep_thresh = false;
 want_sweep_bands = false;
 want_sweep_datasets = true;
 
+% Bootstrapping doesn't seem to change SEM, vs dev/sqrt(n) estimation.
 want_bootstrap = false;
 want_surrogates = false;
 
@@ -129,6 +130,9 @@ rate_band_time_bin_sec = [ 0.0 2.0 ];
 
 bootstrap_count = 1000;
 
+% Surrogate SEM starts as being comparable to non-surrogate SEM, and goes
+% down as sqrt(count). So counts above 10 don't get you much (data error
+% dominates).
 %surrogate_count = 1000;
 %surrogate_count = 100;
 surrogate_count = 10;
