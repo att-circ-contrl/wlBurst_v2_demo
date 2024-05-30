@@ -95,6 +95,10 @@ bandlist = [ ...
   struct( 'band', [ 30 60 ],  'label', 'gl', 'name', 'Low Gamma' ), ...
   struct( 'band', [ 60 120 ], 'label', 'gh', 'name', 'High Gamma' ) ];
 
+if ~want_sweep_bands
+  scratch = { bandlist.label };
+  bandlist = bandlist( strcmp(scratch, default_band) );
+end
 
 
 %

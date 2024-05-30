@@ -98,16 +98,65 @@ for sidx = 1:length(datasetlist)
   time_bins_single = { rate_band_time_bin_sec };
 
 
+  % Set up for aggregating burst rate information.
+
+  threshcount = 1;
+  if want_sweep_thresh
+    threshcount = length(detsweepthresholds);
+  end
+
+  bandcount = length(bandlist);
+  chancount = length(ftdata.label);
+  wincount = length(time_bins_sec);
+
+  scratchband = nan([ bandcount chancount 1 ]);
+  scratchtime = nan([ bandcount chancount wincount ]);
+
+  rateband_avg = {};
+  rateband_dev = {};
+  rateband_sem = {};
+
+  ratetime_avg = {};
+  ratetime_dev = {};
+  ratetime_sem = {};
+
+  bgband_avg = {};
+  bgband_dev = {};
+  bgband_sem = {};
+
+  bgtime_avg = {};
+  bgtime_dev = {};
+  bgtime_sem = {};
+
+  for thidx = 1:threshcount
+    % Pre-allocate, to force the correct geometry.
+
+    rateband_avg{thidx} = scratchband;
+    rateband_dev{thidx} = scratchband;
+    rateband_sem{thidx} = scratchband;
+
+    ratetime_avg{thidx} = scratchtime;
+    ratetime_dev{thidx} = scratchtime;
+    ratetime_sem{thidx} = scratchtime;
+
+    bgband_avg{thidx} = scratchband;
+    bgband_dev{thidx} = scratchband;
+    bgband_sem{thidx} = scratchband;
+
+    bgtime_avg{thidx} = scratchtime;
+    bgtime_dev{thidx} = scratchtime;
+    bgtime_sem{thidx} = scratchtime;
+  end
+
+
+  % Iterate bands.
+
   for bidx = 1:length(bandlist)
 
     thisbanddef = bandlist(bidx);
     bandspan = thisbanddef.band;
     bandtitle = thisbanddef.name;
     bandlabel = thisbanddef.label;
-
-    if (~want_sweep_bands) && (~strcmp(bandlabel, default_band))
-      continue;
-    end
 
     disp(sprintf( '-- Processing %s band (%.1f - %.1f Hz).', ...
       bandtitle, min(bandspan), max(bandspan) ));
@@ -127,9 +176,9 @@ for sidx = 1:length(datasetlist)
       'bpinstabilityfix', 'split', 'feedback', 'no' );
     ftbandpass = ft_preprocessing( bandpassconfig, ftdata );
 
-    for threshidx = 1:length(thisthreshlist)
+    for thidx = 1:length(thisthreshlist)
 
-      thisthresh = thisthreshlist(threshidx);
+      thisthresh = thisthreshlist(thidx);
       % FIXME - Assume integer dB values!
       threshlabel = sprintf( '%02ddb', round(thisthresh) );
 
@@ -199,17 +248,26 @@ for sidx = 1:length(datasetlist)
 
 
       % Get rates and rate statistics.
+      % These get aggregted for later plotting.
 
       disp('.. Evaluating burst rates.');
       tic;
 
-      [ rateband_avg rateband_dev rateband_sem ] = ...
+      [ thisrateband_avg thisrateband_dev thisrateband_sem ] = ...
         wlStats_getMatrixBurstRates( thisdetect, time_bins_single, ...
           bootstrap_count );
 
-      [ ratetime_avg ratetime_dev ratetime_sem ] = ...
+      rateband_avg{thidx}(bidx,:,:) = thisrateband_avg(1,:,:);
+      rateband_dev{thidx}(bidx,:,:) = thisrateband_dev(1,:,:);
+      rateband_sem{thidx}(bidx,:,:) = thisrateband_sem(1,:,:);
+
+      [ thisratetime_avg thisratetime_dev thisratetime_sem ] = ...
         wlStats_getMatrixBurstRates( thisdetect, time_bins_sec, ...
           bootstrap_count );
+
+      ratetime_avg{thidx}(bidx,:,:) = thisratetime_avg(1,:,:);
+      ratetime_dev{thidx}(bidx,:,:) = thisratetime_dev(1,:,:);
+      ratetime_sem{thidx}(bidx,:,:) = thisratetime_sem(1,:,:);
 
       durstring = nlUtil_makePrettyTime(toc);
       disp([ '.. Finished in ' durstring '.' ]);
@@ -256,13 +314,21 @@ for sidx = 1:length(datasetlist)
       disp('.. Computing event rates in surrogate data.')
       tic;
 
-      [ bgband_avg bgband_dev bgband_sem ] = ...
+      [ thisbgband_avg thisbgband_dev thisbgband_sem ] = ...
         wlStats_getMatrixBurstRates( phasedetect, time_bins_single, ...
           bootstrap_count );
 
-      [ bgtime_avg bgtime_dev bgtime_sem ] = ...
+      bgband_avg{thidx}(bidx,:,:) = thisbgband_avg(1,:,:);
+      bgband_dev{thidx}(bidx,:,:) = thisbgband_dev(1,:,:);
+      bgband_sem{thidx}(bidx,:,:) = thisbgband_sem(1,:,:);
+
+      [ thisbgtime_avg thisbgtime_dev thisbgtime_sem ] = ...
         wlStats_getMatrixBurstRates( phasedetect, time_bins_sec, ...
           bootstrap_count );
+
+      bgtime_avg{thidx}(bidx,:,:) = thisbgtime_avg(1,:,:);
+      bgtime_dev{thidx}(bidx,:,:) = thisbgtime_dev(1,:,:);
+      bgtime_sem{thidx}(bidx,:,:) = thisbgtime_sem(1,:,:);
 
       durstring = nlUtil_makePrettyTime(toc);
       disp([ '.. Finished in ' durstring '.' ]);
@@ -354,37 +420,42 @@ for sidx = 1:length(datasetlist)
       end
 
 
-      if want_plot_rates
-        disp('.. Plotting burst rates.');
-
-% FIXME - This needs to be aggregated outside the band loop!
-% FIXME - Blithely assuming FT channel labels are plot/filename safe.
-if true
-        wlPlot_plotMatrixBurstRates( plotconfig, ...
-          rateband_avg, rateband_dev, rateband_sem, ...
-          bgband_avg, bgband_dev, bgband_sem, ...
-          time_bins_single, { bandtitle }, { bandlabel }, ftdata.label, ...
-          sprintf( '%s Burst Rates - %s - %.1f dB', ...
-            settitle, bandtitle, thisthresh ), ...
-          [ 'byband-' setlabel '-' threshlabel ] );
-end
-
-        wlPlot_plotMatrixBurstRates( plotconfig, ...
-          ratetime_avg, ratetime_dev, ratetime_sem, ...
-          bgtime_avg, bgtime_dev, bgtime_sem, ...
-          time_bins_sec, { bandtitle }, { bandlabel }, ftdata.label, ...
-          sprintf( '%s Burst Rates - %s - %.1f dB', ...
-            settitle, bandtitle, thisthresh ), ...
-          [ 'bytime-' setlabel '-' threshlabel ] );
-
-        disp('.. Finished plotting.');
-      end
-
-
       % End of threshold iteration.
     end
 
     % End of band iteration.
+  end
+
+
+  % Iterate thresholds only, for rate plotting.
+
+  if want_plot_rates
+    disp('.. Plotting burst rates.');
+
+    bandtitlelist = { bandlist.name };
+    bandlabellist = { bandlist.label };
+
+    for thidx = 1:threshcount
+      % FOOband has only one time window.
+      wlPlot_plotMatrixBurstRates( plotconfig, ...
+        rateband_avg{thidx}, rateband_dev{thidx}, rateband_sem{thidx}, ...
+        bgband_avg{thidx}, bgband_dev{thidx}, bgband_sem{thidx}, ...
+        time_bins_single, bandtitlelist, bandlabellist, ftdata.label, ...
+        sprintf( '%s Burst Rates - %.1f dB', ...
+          settitle, thisthresh ), ...
+        [ 'byband-' setlabel '-' threshlabel ] );
+
+      % FOOtime has lots of time windows.
+      wlPlot_plotMatrixBurstRates( plotconfig, ...
+        ratetime_avg{thidx}, ratetime_dev{thidx}, ratetime_sem{thidx}, ...
+        bgtime_avg{thidx}, bgtime_dev{thidx}, bgtime_sem{thidx}, ...
+        time_bins_sec, bandtitlelist, bandlabellist, ftdata.label, ...
+        sprintf( '%s Burst Rates - %.1f dB', ...
+          settitle, thisthresh ), ...
+        [ 'bytime-' setlabel '-' threshlabel ] );
+    end
+
+    disp('.. Finished plotting.');
   end
 
   % End of dataset iteration.
