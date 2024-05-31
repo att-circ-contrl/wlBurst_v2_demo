@@ -64,7 +64,7 @@ want_browse_trial_bandpass = true;
 
 % Debugging switches.
 
-debug_save_detected = true;
+debug_save_detected = false;
 
 
 
@@ -74,11 +74,12 @@ debug_save_detected = true;
 % Using two different syntaxes for struct arrays, but this is the most
 % readable way of doing each of these.
 
+default_dataset = 'rfh';
 %default_dataset = 'wlburst';
-default_dataset = 'york';
+%default_dataset = 'york';
 
-%default_band = 'Alpha';
-default_band = 'Beta';
+default_band = 'Alpha';
+%default_band = 'Beta';
 
 
 datasetpath = [ '..' filesep 'datasets-cooked' ];
