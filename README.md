@@ -58,7 +58,7 @@ For a detailed description of the functions offered by the library, and a
 more detailed discussion of the detection algorithm, see the library
 reference and user guide in the ``manual`` folder in the wlBurst_v2 project.
 
-### What the Demo Does:
+### What the Demo Does
 
 The demo code performs the following steps:
 
