@@ -6,9 +6,9 @@
 % Behavior switches.
 
 
-want_sweep_thresh = false;
+want_sweep_thresh = true;
 want_sweep_bands = false;
-want_sweep_datasets = true;
+want_sweep_datasets = false;
 
 % Bootstrapping doesn't seem to change SEM, vs dev/sqrt(n) estimation.
 want_bootstrap = false;
@@ -20,6 +20,7 @@ want_surrogates = false;
 want_one_bg_surrogate = false;
 
 want_tuned_thresholds = false;
+want_adaptive_threshold = false;
 
 
 want_parallel = true;
@@ -46,8 +47,8 @@ want_plot_ratevsband = true;
 
 % For evaluating rate vs band, this determines what time interval we use.
 %plot_ratevsband_window = 'window';
-plot_ratevsband_window = 'positive';
-%plot_ratevsband_window = 'all';
+%plot_ratevsband_window = 'positive';
+plot_ratevsband_window = 'all';
 
 
 % Indicate how, and if, to use ft_databrowser.
@@ -73,7 +74,12 @@ debug_save_detected = true;
 % Using two different syntaxes for struct arrays, but this is the most
 % readable way of doing each of these.
 
-default_dataset = 'wlburst';
+%default_dataset = 'wlburst';
+default_dataset = 'york';
+
+%default_band = 'Alpha';
+default_band = 'Beta';
+
 
 datasetpath = [ '..' filesep 'datasets-cooked' ];
 datasetlist = struct( ...
@@ -83,20 +89,22 @@ datasetlist = struct( ...
   'title', { 'RFH Synthetic', 'wlBurst Synthetic', 'York NHP' }, ...
   'label', { 'rfh', 'wlburst', 'york' } );
 
-default_band = 'al';
 
 % NOTE - Alpha is normally 8-12 Hz, but we need it to be at least an
 % octave wide for reasonable filter behavior.
 
+% NOTE - Prepending digits to band labels, so that they're in order when
+% sorted by filename.
+
 bandlist = [ ...
-  struct( 'band', [ 4 8 ],    'label', 'th', 'name', 'Theta' ), ...
-  struct( 'band', [ 7 14 ],   'label', 'al', 'name', 'Alpha' ), ...
-  struct( 'band', [ 12 30 ],  'label', 'be', 'name', 'Beta' ), ...
-  struct( 'band', [ 30 60 ],  'label', 'gl', 'name', 'Low Gamma' ), ...
-  struct( 'band', [ 60 120 ], 'label', 'gh', 'name', 'High Gamma' ) ];
+  struct( 'band', [ 4 8 ],    'label', '1-th', 'name', 'Theta' ), ...
+  struct( 'band', [ 7 14 ],   'label', '2-al', 'name', 'Alpha' ), ...
+  struct( 'band', [ 12 30 ],  'label', '3-be', 'name', 'Beta' ), ...
+  struct( 'band', [ 30 60 ],  'label', '4-gl', 'name', 'Low Gamma' ), ...
+  struct( 'band', [ 60 120 ], 'label', '5-gh', 'name', 'High Gamma' ) ];
 
 if ~want_sweep_bands
-  scratch = { bandlist.label };
+  scratch = { bandlist.name };
   bandlist = bandlist( strcmp(scratch, default_band) );
 end
 
@@ -104,24 +112,41 @@ end
 %
 % Tuning parameters.
 
-% Giving this longer dropout paving (1.0) than in my other scripts (0.5).
-segconfig = struct( 'type', 'magdual', ...
-  'qlong', 10, 'qdrop', 1.0, 'qglitch', 1.0, ...
-  'dbpeak', 10, 'dbend', 2 );
-
-% Coarse grid envelope fitting is sufficient.
-% FIXME - See if I can implement a "fast guess" method.
-% Using a coarser grid (5) than in my other scripts (7).
-paramconfig = struct( 'type', 'grid', 'gridsteps', 5 );
-
 % Detection threshold tested for plots of detection vs threshold.
-detsweepthresholds = 4:16;
+detsweepthresholds = 4:12;
+
+% Default threshold.
+% 4 sigma is 12.0 dB, 3 sigma is 9.5 dB, 2 sigma is 6.0 dB.
+%fixedthreshold = 10.0;
+fixedthreshold = 6.0;
 
 % Selected thresholds per-band.
 tunedthresholds = struct( 'th', 8, 'al', 12, 'be', 12, 'gl', 8, 'gh', 9 );
 
 % Event trimming at the ends of the detection range.
 detecttrimsecs = 0.5;
+
+% Giving this longer dropout paving (1.0) than in my other scripts (0.5).
+segconfig = struct( 'type', 'magdual', ...
+  'qlong', 10, 'qdrop', 1.0, 'qglitch', 1.0, ...
+  'dbpeak', fixedthreshold, 'dbend', 2 );
+
+if ~want_adaptive_threshold
+  % NOTE - Setting 'qlong' to inf works better for low frequencies.
+  % Trying a very low but finite frequency can give artifacts.
+  % At high frequencies, you do want an adaptive threshold (Q=10 works well).
+
+  segconfig.qlong = inf;
+end
+
+if ~want_sweep_thresh
+  detsweepthresholds = fixedthreshold;
+end
+
+% Coarse grid envelope fitting is sufficient.
+% FIXME - See if I can implement a "fast guess" method.
+% Using a coarser grid (5) than in my other scripts (7).
+paramconfig = struct( 'type', 'grid', 'gridsteps', 5 );
 
 
 

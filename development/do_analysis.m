@@ -100,10 +100,7 @@ for sidx = 1:length(datasetlist)
 
   % Set up for aggregating burst rate information.
 
-  threshcount = 1;
-  if want_sweep_thresh
-    threshcount = length(detsweepthresholds);
-  end
+  threshcount = length(detsweepthresholds);
 
   bandcount = length(bandlist);
   chancount = length(ftdata.label);
@@ -162,13 +159,11 @@ for sidx = 1:length(datasetlist)
       bandtitle, min(bandspan), max(bandspan) ));
 
     basedetectconfig = segconfig;
-    if want_tuned_thresholds && isfield( tunedthresholds, bandlabel )
-      basedetectconfig.dbpeak = tunedthresholds.(bandlabel);
-    end
 
-    thisthreshlist = basedetectconfig.dbpeak;
-    if want_sweep_thresh
-      thisthreshlist = detsweepthresholds;
+    thisthreshlist = detsweepthresholds;
+    if want_tuned_thresholds && isfield( tunedthresholds, bandlabel ) ...
+      && (~want_sweep_thresh)
+      thisthreshlist = tunedthresholds.(bandlabel);
     end
 
     % Get band-pass data, for plotting.
@@ -436,6 +431,10 @@ for sidx = 1:length(datasetlist)
     bandlabellist = { bandlist.label };
 
     for thidx = 1:threshcount
+      thisthresh = detsweepthresholds(thidx);
+      % FIXME - Assume integer dB values!
+      threshlabel = sprintf( '%02ddb', round(thisthresh) );
+
       % FOOband has only one time window.
       wlPlot_plotMatrixBurstRates( plotconfig, ...
         rateband_avg{thidx}, rateband_dev{thidx}, rateband_sem{thidx}, ...
@@ -453,6 +452,28 @@ for sidx = 1:length(datasetlist)
         sprintf( '%s Burst Rates - %.1f dB', ...
           settitle, thisthresh ), ...
         [ 'bytime-' setlabel '-' threshlabel ] );
+    end
+
+
+    % This plot only looks good if it has more than one data point.
+    if want_sweep_thresh
+      % Re-aggregate the single-window case to have thresholds instead of
+      % time as an axis.
+
+      ratethresh_avg = helper_swapTimeAndThreshold( rateband_avg, 1 );
+      ratethresh_dev = helper_swapTimeAndThreshold( rateband_dev, 1 );
+      ratethresh_sem = helper_swapTimeAndThreshold( rateband_sem, 1 );
+
+      bgthresh_avg = helper_swapTimeAndThreshold( bgband_avg, 1 );
+      bgthresh_dev = helper_swapTimeAndThreshold( bgband_dev, 1 );
+      bgthresh_sem = helper_swapTimeAndThreshold( bgband_sem, 1 );
+
+      wlPlot_plotMatrixBurstRates( plotconfig, ...
+        ratethresh_avg, ratethresh_dev, ratethresh_sem, ...
+        bgthresh_avg, bgthresh_dev, bgthresh_sem, ...
+        detsweepthresholds, bandtitlelist, bandlabellist, ftdata.label, ...
+        sprintf( '%s Burst Rates vs Threshold', settitle ), ...
+        [ 'bythresh-' setlabel ], 'Threshold (dB)' );
     end
 
     disp('.. Finished plotting.');
