@@ -53,23 +53,23 @@ gallery: gallery4
 
 gallery6:
 	sync
-	cd plots; makegallery.pl --width=16% --nofolders *png; cd ..
+	cd plots; ../makegallery.pl --width=16% --nofolders *png; cd ..
 
 gallery5:
 	sync
-	cd plots; makegallery.pl --width=19% --nofolders *png; cd ..
+	cd plots; ../makegallery.pl --width=19% --nofolders *png; cd ..
 
 gallery4:
 	sync
-	cd plots; makegallery.pl --width=24% --nofolders *png; cd ..
+	cd plots; ../makegallery.pl --width=24% --nofolders *png; cd ..
 
 gallery3:
 	sync
-	cd plots; makegallery.pl --width=32% --nofolders *png; cd ..
+	cd plots; ../makegallery.pl --width=32% --nofolders *png; cd ..
 
 gallery2:
 	sync
-	cd plots; makegallery.pl --width=49% --nofolders *png; cd ..
+	cd plots; ../makegallery.pl --width=49% --nofolders *png; cd ..
 
 #
 # This is the end of the file.

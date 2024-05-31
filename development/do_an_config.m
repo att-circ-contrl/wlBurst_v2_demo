@@ -7,7 +7,7 @@
 
 
 want_sweep_thresh = true;
-want_sweep_bands = false;
+want_sweep_bands = true;
 want_sweep_datasets = false;
 
 % Bootstrapping doesn't seem to change SEM, vs dev/sqrt(n) estimation.
@@ -74,12 +74,13 @@ debug_save_detected = false;
 % Using two different syntaxes for struct arrays, but this is the most
 % readable way of doing each of these.
 
-default_dataset = 'rfh';
-%default_dataset = 'wlburst';
+%default_dataset = 'rfh';
+default_dataset = 'wlburst';
 %default_dataset = 'york';
 
-default_band = 'Alpha';
-%default_band = 'Beta';
+%default_band = 'Alpha';
+default_band = 'Beta';
+%default_band = 'Low Gamma';
 
 
 datasetpath = [ '..' filesep 'datasets-cooked' ];
