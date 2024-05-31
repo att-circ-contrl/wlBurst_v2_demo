@@ -78,13 +78,13 @@ Field Trip's data browser, or both.
 
 ## Folders
 
-* 'datasets-cooked' --
+* `datasets-cooked` --
 Field Trip data intended to be used by the demo script.
-* 'datasets-raw' --
+* `datasets-raw` --
 Datasets from which the "cooked" datasets were derived.
-* 'demo' --
+* `demo` --
 Scripts that are used for the demo.
-* 'development' --
+* `development` --
 Scripts that are not intended to be part of the demo.
 
 _(This is the end of the file.)_
