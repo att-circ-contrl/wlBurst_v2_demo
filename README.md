@@ -24,7 +24,8 @@ To use this demo:
 path.
 * If desired, edit the configuration variables at the top of the demo
 script.
-* Run the demo code to generate burst analysis plots of the example data.
+* Run the demo code (in the `demo` folder) to generate burst analysis plots
+of the example data.
 * If desired, modify the demo code to do additional analyses.
 
 ### What the Burst Library Does
@@ -61,19 +62,19 @@ reference and user guide in the ``manual`` folder in the wlBurst_v2 project.
 
 The demo code performs the following steps:
 
-* It picks a dataset. Set the appropriate configuration variable to choose
-  a different dataset.
+* It picks a dataset. To choose a different dataset, set the appropriate
+configuration variable
 * It picks a starting threshold (2 sigma).
 * It runs a detection for each band, plotting burst rate as a function of
-  band. This is intended to let you pick the band that has the most burst
-  activity (highest above the false positive background).
+band. This is intended to let you pick the band that has the most burst
+activity (highest above the false positive background).
 * Once a band is picked, it runs a detection for several different
-  threshold values. This is intended to let you adjust the threshold to
-  provide as many true detections and as few false detections as possible.
+threshold values. This is intended to let you adjust the threshold to
+provide as many true detections and as few false detections as possible.
 * Detection rate vs time in trial is plotted for the chosen band and
-  threshold.
+threshold.
 * Optionally, detected events themselves are plotted, or are rendered using
-  Field Trip's data browser, or both.
+Field Trip's data browser, or both.
 
 ## Folders
 
@@ -85,7 +86,5 @@ Datasets from which the "cooked" datasets were derived.
 Scripts that are used for the demo.
 * 'development' --
 Scripts that are not intended to be part of the demo.
-
-**FIXME** -- Demo script folder to-do.
 
 _(This is the end of the file.)_
