@@ -24,6 +24,8 @@ wlAddPaths;
 % "nhp" is a single-channel non-human primate recording during a puzzle task.
 
 dataset = 'wlburst';
+%dataset = 'rfh';
+%dataset = 'nhp';
 
 
 % Band to use.
@@ -31,6 +33,7 @@ dataset = 'wlburst';
 % These are case-sensitive.
 
 band = 'Beta';
+%band = 'Alpha';
 
 % Whether or not to do a test sweep across all bands.
 want_test_bands = true;
