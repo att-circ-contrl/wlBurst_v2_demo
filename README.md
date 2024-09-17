@@ -86,5 +86,7 @@ Datasets from which the "cooked" datasets were derived.
 Scripts that are used for the demo.
 * `development` --
 Scripts that are not intended to be part of the demo.
+* `slides` --
+Slide deck for the 2024 demo presentation.
 
 _(This is the end of the file.)_
