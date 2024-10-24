@@ -210,8 +210,10 @@ plotconfig = struct( 'fig', figure, 'outdir', plotfolder, ...
   'psfres', 5, 'psolap', 99, 'psleak', 0.75, 'psylim', 50 );
 
 
+
 % Library-specific tuning parameters. The wlBurst documentation has more
 % information about these.
+
 
 % We're using two-threshold detection.
 % We're using the DC average to get the baseline amplitude, rather than
@@ -229,9 +231,30 @@ segconfig = struct( 'type', 'magdual', ...
 % Event trimming at the ends of the detection range.
 detecttrim_secs = 0.5;
 
-% We're doing curve-fitting of the amplitude envelope using the "grid"
-% algorithm. We're checking 5 points as starting/ending points.
+
+% Do curve-fitting of the amplitude envelope using the "grid" algorithm.
+% We're checking 5 points as starting/ending points.
 paramconfig = struct( 'type', 'grid', 'gridsteps', 5 );
+
+% Alternate version that does a curve fit with no searching.
+%paramconfig = struct( 'type', 'fast' );
+
+% Alternate versions that do curve fits and anneal the curve fit parameters.
+if false
+  % Anneal only the magnitude envelope.
+  paramconfig = struct( 'type', 'annealamp' );
+
+  % Anneal the envelope and then jointly anneal envelope and frequency.
+%  paramconfig = struct( 'type', 'annealboth' );
+
+  paramconfig.gridsteps = 5;
+  paramconfig.matchfreq = 1.5;
+  paramconfig.matchamp = 1.5;
+  paramconfig.matchlength = 2;
+  paramconfig.matcholap = 0.5;
+  paramconfig.tunnelmax = 30;
+  paramconfig.totalmax = 200;
+end
 
 
 % Function handles for event pruning.
